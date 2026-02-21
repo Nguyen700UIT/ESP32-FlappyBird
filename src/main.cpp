@@ -84,7 +84,7 @@ int score = 0;
 
 //Game
 bool gameOver = false;
-
+bool lost = false;
 //Tube
 int tubeGap = 30;
 int TubeWidth = 15;
@@ -229,7 +229,7 @@ if(!gameOver)
       buzzerOn = true;
       flew = false;
     }  
-    if(buzzerOn && millis() - lastTime >= 20)
+    if(buzzerOn && millis() - lastTime >= 10)
     {
       digitalWrite(BUZZER, LOW);
       buzzerOn = false;
@@ -238,8 +238,16 @@ if(!gameOver)
     collisionLogic();
     scored();
 }
-else 
+else //Draw game over 
 {
+  if(lost == false)
+  {
+    digitalWrite(BUZZER, HIGH);
+    delay(200);
+    digitalWrite(BUZZER, LOW);
+    lost = true;
+  }
+
   display.clearDisplay();
   display.setTextSize(2);
   display.setTextColor(SSD1306_WHITE);
@@ -261,6 +269,7 @@ if (gameOver && digitalRead(BUTTON) == LOW)
   initTube();
   birdY = 32;
   birdVelocity = 0;
+  lost = false;
 }
 
 if(!gameOver)
