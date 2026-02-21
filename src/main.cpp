@@ -13,8 +13,9 @@ Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 #define BIRD_X 30
 
 unsigned long long lastTime = 0;
-
+unsigned long long lastInterruptTime = 0;
 struct Tube{
+  bool passed[3];
   int tubeX[3];
   int upperTubeHeight[3];
   int lowerTubeHeight[3];
@@ -27,20 +28,30 @@ struct Tube{
   }
 };
 
+
+//Debounce
+const int debounce = 150;
+
 //Bird fly 
 volatile bool flew = false;
 bool buzzerOn = false;
 
 //Bird
 float birdY = 32;
-int birdWidth = 5;
-int birdHeight = 5;
+int birdWidth = 8;
+int birdHeight = 8;
 float birdVelocity = 0; 
 const float GRAVITY = 0.25;
 float jumpForce = -2.35;
 
+//Score 
+int score = 0;
+
+//Game
+bool gameOver = false;
+
 //Tube
-int tubeGap = 25;
+int tubeGap = 30;
 int TubeWidth = 15;
 Tube tube;
 
@@ -48,7 +59,12 @@ int velocity = 3;
 
 void IRAM_ATTR handleButton()
 {
-  flew = true;
+  unsigned long long curr = millis();
+  if(curr - lastInterruptTime > 150) 
+  {
+    flew = true;
+    lastInterruptTime = curr;
+  }
 }
 
 void initTube()
@@ -58,6 +74,7 @@ void initTube()
   {
     tube.upperTubeHeight[i] = random(5, SCREEN_HEIGHT - tubeGap - 5);
     tube.lowerTubeHeight[i] = SCREEN_HEIGHT - tube.upperTubeHeight[i] - tubeGap;
+    tube.passed[i] = false;
   }
 
 
@@ -102,7 +119,7 @@ void drawTube()
 
 void drawBird()
 {
-  display.drawRect(BIRD_X, birdY, birdWidth, birdHeight, SSD1306_WHITE);
+  display.drawRect(BIRD_X, (int)birdY, birdWidth, birdHeight, SSD1306_WHITE);
 }
 
 void birdDropLogic()
@@ -116,21 +133,85 @@ void birdJumpLogic()
   birdVelocity = jumpForce;
 }
 
-void loop() {
-  birdDropLogic();
-  if(flew)
+void collisionLogic()
+{
+  for (int i = 0; i < 3; ++i)
   {
-    birdJumpLogic();
-    digitalWrite(BUZZER, HIGH);
-    lastTime = millis();
-    buzzerOn = true;
-    flew = false;
-  }  
-  if(buzzerOn && millis() - lastTime >= 100)
-  {
-    digitalWrite(BUZZER, LOW);
-    buzzerOn = false;
+    if(BIRD_X + birdWidth > tube.tubeX[i] && tube.tubeX[i] + TubeWidth > BIRD_X)
+    {
+      int top = tube.upperTubeHeight[i];
+      int bot = tube.upperTubeHeight[i] + tubeGap;
+      if(birdY < top || birdY + birdHeight > bot)
+        gameOver = true;
+    }
   }
+  if(birdY <= 0 || birdY + birdHeight >= SCREEN_HEIGHT)
+{
+    gameOver = true;
+}
+}
+
+void scored()
+{
+  for (int i = 0; i < 3; ++i)
+  {
+    if(BIRD_X >= tube.tubeX[i] + TubeWidth && tube.passed[i] == false)
+    {
+      score++;
+      tube.passed[i] = true;
+    }
+  }
+}
+
+void loop() {
+//Logic
+if(!gameOver)
+{
+  if(flew)
+    {
+      birdJumpLogic();
+      digitalWrite(BUZZER, HIGH);
+      lastTime = millis();
+      buzzerOn = true;
+      flew = false;
+    }  
+    if(buzzerOn && millis() - lastTime >= 20)
+    {
+      digitalWrite(BUZZER, LOW);
+      buzzerOn = false;
+    }
+    birdDropLogic();
+    collisionLogic();
+    scored();
+}
+else 
+{
+  display.clearDisplay();
+  display.setTextSize(2);
+  display.setTextColor(SSD1306_WHITE);
+  display.setCursor(15, 20);
+  display.println("GAME OVER");
+        
+  display.setTextSize(1);
+  display.setCursor(30, 45);
+  display.print("Score: ");
+  display.println(score);
+  display.display();
+}
+
+if (gameOver && digitalRead(BUTTON) == LOW)
+{
+  gameOver = false;
+  score = 0;
+  tube = Tube();
+  initTube();
+  birdY = 32;
+  birdVelocity = 0;
+}
+
+if(!gameOver)
+{
+  //Drawing
   display.clearDisplay();
   drawTube();
   drawBird();
@@ -149,7 +230,9 @@ void loop() {
       tube.tubeX[i] = maxX + 55;
       tube.upperTubeHeight[i] = random(5, SCREEN_HEIGHT - tubeGap - 5);
       tube.lowerTubeHeight[i] = SCREEN_HEIGHT - tube.upperTubeHeight[i] - tubeGap;
+      tube.passed[i] = false;
     }
   }
+}
 }
 
