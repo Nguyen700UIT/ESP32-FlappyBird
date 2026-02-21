@@ -12,6 +12,39 @@ Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 
 #define BIRD_X 30
 
+const unsigned char bird1 [] PROGMEM = {
+0x18,
+0x3C,
+0x7E,
+0xDB,
+0xFF,
+0x7E,
+0x3C,
+0x18
+};
+
+const unsigned char bird2 [] PROGMEM = {
+0x18,
+0x3C,
+0x7E,
+0xFF,
+0xFF,
+0x7E,
+0x3C,
+0x18
+};
+
+const unsigned char bird3 [] PROGMEM = {
+0x18,
+0x3C,
+0x7E,
+0xDB,
+0xFF,
+0x3C,
+0x18,
+0x00
+};
+
 unsigned long long lastTime = 0;
 unsigned long long lastInterruptTime = 0;
 struct Tube{
@@ -37,6 +70,8 @@ volatile bool flew = false;
 bool buzzerOn = false;
 
 //Bird
+int birdFrame = 0;
+unsigned int lastFrameTime = 0;
 float birdY = 32;
 int birdWidth = 8;
 int birdHeight = 8;
@@ -77,10 +112,20 @@ void initTube()
     tube.passed[i] = false;
   }
 
-
 }
 
-
+void updateAnimation()
+{
+  if (millis() - lastFrameTime > 120)
+  {
+    birdFrame++;
+    if (birdFrame > 2)
+    {
+      birdFrame = 0;
+    }
+    lastFrameTime = millis();
+  }
+}
 
 void setup() {
   Serial.begin(9600);
@@ -119,7 +164,16 @@ void drawTube()
 
 void drawBird()
 {
-  display.drawRect(BIRD_X, (int)birdY, birdWidth, birdHeight, SSD1306_WHITE);
+    const unsigned char* frames[] = {bird1, bird2, bird3};
+
+    display.drawBitmap(
+        BIRD_X,
+        (int)birdY,
+        frames[birdFrame],
+        8,
+        8,
+        SSD1306_WHITE
+    );
 }
 
 void birdDropLogic()
@@ -214,6 +268,7 @@ if(!gameOver)
   //Drawing
   display.clearDisplay();
   drawTube();
+  updateAnimation();
   drawBird();
   display.display();
   for (int i = 0; i < 3; ++i)
