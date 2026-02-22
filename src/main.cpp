@@ -81,7 +81,7 @@ float jumpForce = -2.35;
 
 //Score 
 int score = 0;
-
+int bestScore = 0;
 //Game
 bool gameOver = false;
 bool lost = false;
@@ -211,8 +211,10 @@ void scored()
   {
     if(BIRD_X >= tube.tubeX[i] + TubeWidth && tube.passed[i] == false)
     {
+      
       score++;
       tube.passed[i] = true;
+      bestScore = max(bestScore, score);
     }
   }
 }
@@ -255,10 +257,15 @@ else //Draw game over
   display.println("GAME OVER");
         
   display.setTextSize(1);
-  display.setCursor(30, 45);
+  display.setCursor(30, 40);
   display.print("Score: ");
   display.println(score);
+  display.setTextSize(1);
+  display.setCursor(30, 50);
+  display.print("Best score: ");
+  display.println(bestScore);
   display.display();
+  
 }
 
 if (gameOver && digitalRead(BUTTON) == LOW)
