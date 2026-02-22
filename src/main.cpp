@@ -270,6 +270,7 @@ if (gameOver && digitalRead(BUTTON) == LOW)
   birdY = 32;
   birdVelocity = 0;
   lost = false;
+  delay(1000);
 }
 
 if(!gameOver)
