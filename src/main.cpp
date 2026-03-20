@@ -51,8 +51,9 @@ struct Tube{
 
 
 //DEBOUNCE
-#define DEBOUNCE 150
-unsigned long long lastActiveButtonTime = 0;
+#define DEBOUNCE 50
+bool flag = false;
+unsigned long lastActiveButtonTime = 0;
 
 //Bird fly 
 volatile bool flew = false;
@@ -258,12 +259,13 @@ else //Draw game over
   display.display();
   //DEBOUNCE for reset button
 
-  if (digitalRead(BUTTON) == LOW)
+  if (digitalRead(BUTTON) == LOW && !flag)
   {
     lastActiveButtonTime = millis();
+    flag = true;
   }
 
-  if (millis() - lastActiveButtonTime > DEBOUNCE && digitalRead(BUTTON) == LOW) //Pressed
+  if (millis() - lastActiveButtonTime > 10 && digitalRead(BUTTON) == LOW) //Pressed
   {
     gameOver = false;
     score = 0;
@@ -272,6 +274,7 @@ else //Draw game over
     birdY = 32;
     birdVelocity = 0;
     lost = false;
+    flag = false;
     delay(1000);
   }
   
