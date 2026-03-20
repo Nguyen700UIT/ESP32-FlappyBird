@@ -50,8 +50,9 @@ struct Tube{
 };
 
 
-//Debounce
-const int debounce = 150;
+//DEBOUNCE
+#define DEBOUNCE 150
+unsigned long long lastActiveButtonTime = 0;
 
 //Bird fly 
 volatile bool flew = false;
@@ -82,12 +83,14 @@ int velocity = 3;
 
 void IRAM_ATTR handleButton()
 {
+  if (gameOver) return; //Quit interrupt if game is over
   unsigned long long curr = millis();
-  if(curr - lastInterruptTime > 150) 
+  if(curr - lastInterruptTime > DEBOUNCE) 
   {
     flew = true;  
     lastInterruptTime = curr;
   }
+  
 }
 
 void initTube()
@@ -253,20 +256,28 @@ else //Draw game over
   display.print("Best score: ");
   display.println(bestScore);
   display.display();
+  //DEBOUNCE for reset button
+
+  if (digitalRead(BUTTON) == LOW)
+  {
+    lastActiveButtonTime = millis();
+  }
+
+  if (millis() - lastActiveButtonTime > DEBOUNCE && digitalRead(BUTTON) == LOW) //Pressed
+  {
+    gameOver = false;
+    score = 0;
+    tube = Tube();
+    initTube();
+    birdY = 32;
+    birdVelocity = 0;
+    lost = false;
+    delay(1000);
+  }
   
 }
 
-if (gameOver && digitalRead(BUTTON) == LOW)
-{
-  gameOver = false;
-  score = 0;
-  tube = Tube();
-  initTube();
-  birdY = 32;
-  birdVelocity = 0;
-  lost = false;
-  delay(1000);
-}
+
 
 if(!gameOver)
 {
