@@ -74,7 +74,7 @@ int bestScore = 0;
 bool gameOver = false;
 bool lost = false;
 //Tube
-int tubeGap = 30;
+int tubeGap = 40;
 int TubeWidth = 15;
 Tube tube;
 
