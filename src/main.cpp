@@ -61,8 +61,8 @@ bool buzzerOn = false;
 int birdFrame = 0;
 unsigned int lastFrameTime = 0;
 float birdY = 32;
-int birdWidth = 18;
-int birdHeight = 12;
+int birdWidth = 24;
+int birdHeight = 18;
 float birdVelocity = 0; 
 const float GRAVITY = 0.25;
 float jumpForce = -2.35;
@@ -158,10 +158,10 @@ void drawBird()
         BIRD_X,
         (int)birdY,
         frames[birdFrame],
-        birdWidth,  
-        birdHeight,  
+        24,  
+        16,  
         SSD1306_WHITE
-    );
+    ); //3 bytes for width, 2 bytes for height
 }
 
 void birdDropLogic()
