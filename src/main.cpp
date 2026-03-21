@@ -51,7 +51,7 @@ struct Tube{
 
 
 //DEBOUNCE
-#define DEBOUNCE 50
+#define DEBOUNCE 100
 bool flag = false;
 unsigned long lastActiveButtonTime = 0;
 
@@ -163,7 +163,7 @@ void drawBird()
         (int)birdY,
         frames[birdFrame],
         24,  
-        24,  
+        18,  
         SSD1306_WHITE
     ); //3 bytes for width, 2 bytes for height
 }
