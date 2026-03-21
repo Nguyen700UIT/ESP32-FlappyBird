@@ -51,7 +51,7 @@ struct Tube{
 
 
 //DEBOUNCE
-#define DEBOUNCE 100
+#define DEBOUNCE 150
 bool flag = false;
 unsigned long lastActiveButtonTime = 0;
 
